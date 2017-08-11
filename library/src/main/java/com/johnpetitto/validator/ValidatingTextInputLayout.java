@@ -2,11 +2,46 @@ package com.johnpetitto.validator;
 
 import android.content.Context;
 import android.content.res.TypedArray;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.TextInputLayout;
 import android.util.AttributeSet;
 import android.widget.EditText;
 
+/** An extension of {@code TextInputLayout} that validates the text of its child {@code EditText}
+ * and displays an error when the input is invalid.
+ * <p>
+ * Adding a {@code ValidatingTextInputLayout} to your XML layout file is analogous to adding a
+ * {@code TextInputLayout}:
+ * <pre>
+ * {@code
+ * <com.johnpetitto.validator.ValidatingTextInputLayout
+ *     android:layout_width="match_parent"
+ *     android:layout_height="wrap_content"
+ *     app:errorLabel="@string/some_error">
+ *
+ *     <EditText
+ *         android:layout_width="match_parent"
+ *         android:layout_height="wrap_content" />
+ *
+ * </com.johnpetitto.validator.ValidatingTextInputLayout>
+ * }
+ * </pre>
+ * To set a {@link Validator} for your {@code ValidatingTextInputLayout}, call
+ * {@link #setValidator(Validator)}:
+ * <pre><code>
+ * ValidatingTextInputLayout layout = ...
+ * layout.setValidator(new Validator() {
+ *     public boolean isValid(String input) {
+ *         return input.startsWith("J");
+ *     }
+ * });
+ * </code></pre>
+ * There are a handful of predefined validators in {@link Validators}, as well as a utility for
+ * validating multiple {@link Validator} objects at once. You can use either the
+ * {@link Validators#EMAIL} or {@link Validators#PHONE} validators in XML with the
+ * {@code app:validator} tag.
+ */
 public class ValidatingTextInputLayout extends TextInputLayout {
     private static final int EMAIL_VALIDATOR = 1;
     private static final int PHONE_VALIDATOR = 2;
@@ -43,24 +78,32 @@ public class ValidatingTextInputLayout extends TextInputLayout {
         a.recycle();
     }
 
+    /** Only call this if you want to disable validation at runtime.  */
     @Override
     public final void setErrorEnabled(boolean enabled) {
         super.setErrorEnabled(enabled);
     }
 
+    /** Do not call this since it's managed internally by {@code ValidatingTextInputLayout}. */
     @Override
     public final void setError(@Nullable CharSequence error) {
         super.setError(error);
     }
 
-    public void setValidator(Validator validator) {
+    /** Set a {@link Validator} for validating the contained {@code EditText} input text. */
+    public void setValidator(@NonNull Validator validator) {
         this.validator = validator;
     }
 
+    /** Set the label to show when {@link #validate()} returns {@literal false}. */
     public void setErrorLabel(CharSequence label) {
         errorLabel = label;
     }
 
+    /** Invoke this when you want to validate the contained {@code EditText} input text against the
+     * provided {@link Validator}. For validating multiple {@code ValidatingTextInputLayout}
+     * objects at once, call {@link Validators#validate(ValidatingTextInputLayout...)}.
+     */
     public boolean validate() {
         if (validator == null) {
             throw new IllegalStateException("A Validator must be set; call setValidator first");
